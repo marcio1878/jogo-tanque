@@ -1,5 +1,5 @@
 @echo off
-cd /d "%%~dp0"
+cd /d "%~dp0"
 echo ==========================================
 echo   CONFIGURAR O TOKEN DO NGROK (so 1 vez)
 echo ==========================================
@@ -14,6 +14,6 @@ echo Copie o token no site do ngrok, clique com o BOTAO DIREITO aqui para colar
 echo e aperte ENTER.
 echo.
 set /p TOKEN=Token: 
-ngrok.exe config add-authtoken %%TOKEN%%
+ngrok.exe config add-authtoken %TOKEN%
 echo.
 pause
