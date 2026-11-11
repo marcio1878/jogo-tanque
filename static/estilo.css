@@ -1,0 +1,71 @@
+body {
+    background-color: #1b1f17;
+    color: #e8e8d0;
+    font-family: Arial, sans-serif;
+    text-align: center;
+    margin: 0;
+    padding: 10px;
+}
+
+h1 {
+    color: #9acd32;
+    letter-spacing: 4px;
+    margin: 10px 0;
+}
+
+#painel {
+    font-size: 20px;
+    margin-bottom: 8px;
+}
+
+#painel span {
+    margin: 0 20px;
+}
+
+canvas {
+    background-color: #3b4a2a;
+    border: 4px solid #6b7d3a;
+}
+
+.ajuda {
+    color: #aaa;
+}
+
+/* Caixa de fim de jogo, fica por cima do jogo */
+#fimDeJogo {
+    position: absolute;
+    top: 120px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #222;
+    border: 3px solid #9acd32;
+    padding: 20px 40px;
+    width: 320px;
+}
+
+#fimDeJogo h2 {
+    color: #ff5555;
+}
+
+#fimDeJogo input {
+    padding: 8px;
+    font-size: 16px;
+    width: 200px;
+}
+
+#fimDeJogo button {
+    margin-top: 10px;
+    padding: 8px 16px;
+    font-size: 16px;
+    background-color: #9acd32;
+    border: none;
+    cursor: pointer;
+}
+
+#listaRanking {
+    text-align: left;
+}
+
+.escondido {
+    display: none;
+}
