@@ -6,13 +6,22 @@ hospedado em uma máquina virtual Ubuntu e publicado na internet com o **ngrok**
 Projeto do case mod em formato de tanque (impresso em 3D).
 
 ## Como jogar
-- **Mover:** setas ou W A S D
-- **Atirar:** ESPAÇO
-- **Pausar:** P
+Ao abrir o jogo aparece um menu para escolher o modo (clique ou aperte 1 / 2).
+
+**1 jogador:** você contra os tanques inimigos.
+- Mover: setas ou W A S D | Atirar: ESPAÇO
 
 Cada tanque inimigo destruído vale 10 pontos. A cada 100 pontos o nível sobe
 e os inimigos ficam mais rápidos. São 3 vidas. No fim da partida dá para
 salvar o nome no ranking (guardado no servidor, no arquivo `ranking.txt`).
+
+**2 jogadores (X1):** um contra o outro no mesmo teclado.
+- P1 (verde): W A S D + ESPAÇO
+- P2 (azul): setas + ENTER
+
+Cada um tem 3 vidas. Quem perder todas primeiro perde a partida.
+
+**Pausar:** P
 
 ## Estrutura do projeto
 ```

@@ -31,8 +31,8 @@ canvas {
     color: #aaa;
 }
 
-/* Caixa de fim de jogo, fica por cima do jogo */
-#fimDeJogo {
+/* Caixas de menu e fim de jogo, ficam por cima do jogo */
+.caixa {
     position: absolute;
     top: 120px;
     left: 50%;
@@ -43,17 +43,27 @@ canvas {
     width: 320px;
 }
 
-#fimDeJogo h2 {
+.vermelho {
     color: #ff5555;
 }
 
-#fimDeJogo input {
+.verde {
+    color: #9acd32;
+    font-weight: bold;
+}
+
+.azul {
+    color: #4da6ff;
+    font-weight: bold;
+}
+
+.caixa input {
     padding: 8px;
     font-size: 16px;
     width: 200px;
 }
 
-#fimDeJogo button {
+.caixa button {
     margin-top: 10px;
     padding: 8px 16px;
     font-size: 16px;
@@ -68,4 +78,9 @@ canvas {
 
 .escondido {
     display: none;
+}
+
+.caixa p {
+    color: #ccc;
+    margin-bottom: 20px;
 }

@@ -1,6 +1,9 @@
 // ==========================================
 //  BATALHA DE TANQUES - lógica do jogo
 //  Roda no navegador de quem acessa o site.
+//
+//  Modo 1 jogador: você contra tanques inimigos
+//  Modo 2 jogadores: X1 entre P1 (WASD) e P2 (setas)
 // ==========================================
 
 // Pegando o canvas (a "tela" onde desenhamos o jogo)
@@ -11,15 +14,41 @@ const LARGURA = tela.width;
 const ALTURA = tela.height;
 const TAMANHO_TANQUE = 36;
 
+// ----- Teclas de cada jogador -----
+// No modo 1 jogador dá para usar WASD ou as setas
+const CONTROLE_SOLO = {
+    cima: ["KeyW", "ArrowUp"],
+    baixo: ["KeyS", "ArrowDown"],
+    esquerda: ["KeyA", "ArrowLeft"],
+    direita: ["KeyD", "ArrowRight"],
+    tiro: ["Space"]
+};
+
+const CONTROLE_P1 = {
+    cima: ["KeyW"],
+    baixo: ["KeyS"],
+    esquerda: ["KeyA"],
+    direita: ["KeyD"],
+    tiro: ["Space"]
+};
+
+const CONTROLE_P2 = {
+    cima: ["ArrowUp"],
+    baixo: ["ArrowDown"],
+    esquerda: ["ArrowLeft"],
+    direita: ["ArrowRight"],
+    tiro: ["Enter", "NumpadEnter"]
+};
+
 // ----- Variáveis do jogo -----
-let jogador;
-let inimigos;
-let tiros;
-let explosoes;
+let modo = 1;        // 1 ou 2 jogadores
+let jogadores = [];  // lista com 1 ou 2 tanques de jogador
+let inimigos = [];
+let tiros = [];
+let explosoes = [];
 let pontos;
-let vidas;
 let nivel;
-let estado;          // "jogando", "pausado" ou "fim"
+let estado = "menu"; // "menu", "jogando", "pausado" ou "fim"
 let tempoProximoInimigo;
 
 // Guarda quais teclas estão apertadas agora
@@ -45,29 +74,66 @@ const pontosDeEntrada = [
 
 
 // ==========================================
+//  Criar um tanque de jogador
+// ==========================================
+function criarJogador(nome, x, y, angulo, corCorpo, corEsteira, controle) {
+    return {
+        nome: nome,
+        x: x,
+        y: y,
+        angulo: angulo,
+        velocidade: 2.5,
+        vidas: 3,
+        recargaTiro: 0,     // tempo até poder atirar de novo
+        invencivel: 0,      // tempo piscando depois de levar tiro
+        corCorpo: corCorpo,
+        corEsteira: corEsteira,
+        controle: controle
+    };
+}
+
+
+// ==========================================
 //  Começar / reiniciar o jogo
 // ==========================================
-function iniciarJogo() {
-    jogador = {
-        x: 400,
-        y: 510,
-        angulo: -Math.PI / 2,   // virado para cima
-        velocidade: 2.5,
-        recargaTiro: 0,         // tempo até poder atirar de novo
-        invencivel: 0           // tempo piscando depois de levar tiro
-    };
+function iniciarJogo(modoEscolhido) {
+    modo = modoEscolhido;
+
+    if (modo === 1) {
+        jogadores = [
+            criarJogador("Você", 400, 510, -Math.PI / 2, "#6b8e23", "#2f3f12", CONTROLE_SOLO)
+        ];
+    } else {
+        // P1 começa embaixo à esquerda, P2 em cima à direita
+        jogadores = [
+            criarJogador("P1", 60, 510, -Math.PI / 2, "#6b8e23", "#2f3f12", CONTROLE_P1),
+            criarJogador("P2", 740, 50, Math.PI / 2, "#1e6fbf", "#0d2f52", CONTROLE_P2)
+        ];
+    }
 
     inimigos = [];
     tiros = [];
     explosoes = [];
     pontos = 0;
-    vidas = 3;
     nivel = 1;
     tempoProximoInimigo = 60;
     estado = "jogando";
 
-    document.getElementById("fimDeJogo").classList.add("escondido");
+    esconderCaixas();
     atualizarPainel();
+}
+
+function esconderCaixas() {
+    document.getElementById("menu").classList.add("escondido");
+    document.getElementById("fimDeJogo").classList.add("escondido");
+    document.getElementById("fimX1").classList.add("escondido");
+}
+
+function voltarAoMenu() {
+    estado = "menu";
+    esconderCaixas();
+    document.getElementById("menu").classList.remove("escondido");
+    document.getElementById("painel").textContent = "";
 }
 
 
@@ -82,23 +148,45 @@ document.addEventListener("keydown", function (evento) {
 
     teclas[evento.code] = true;
 
-    if (evento.code === "KeyP" && estado !== "fim") {
+    // No menu dá para escolher apertando 1 ou 2
+    if (estado === "menu") {
+        if (evento.code === "Digit1" || evento.code === "Numpad1") {
+            iniciarJogo(1);
+        }
+        if (evento.code === "Digit2" || evento.code === "Numpad2") {
+            iniciarJogo(2);
+        }
+    }
+
+    if (evento.code === "KeyP") {
         if (estado === "jogando") {
             estado = "pausado";
-        } else {
+        } else if (estado === "pausado") {
             estado = "jogando";
         }
     }
 
-    // Impede a página de rolar com as setas e o espaço
-    if (evento.code === "Space" || evento.code.startsWith("Arrow")) {
-        evento.preventDefault();
+    // Impede a página de rolar e o Enter de apertar botões durante o jogo
+    if (estado === "jogando" || estado === "pausado") {
+        if (evento.code === "Space" || evento.code === "Enter" || evento.code.startsWith("Arrow")) {
+            evento.preventDefault();
+        }
     }
 });
 
 document.addEventListener("keyup", function (evento) {
     teclas[evento.code] = false;
 });
+
+// Verifica se alguma tecla da lista está apertada
+function apertou(listaDeTeclas) {
+    for (let i = 0; i < listaDeTeclas.length; i++) {
+        if (teclas[listaDeTeclas[i]]) {
+            return true;
+        }
+    }
+    return false;
+}
 
 
 // ==========================================
@@ -145,7 +233,7 @@ function posicaoLivre(tanque, x, y) {
     }
 
     // Bateu em outro tanque?
-    const todos = inimigos.concat([jogador]);
+    const todos = inimigos.concat(jogadores);
     for (let i = 0; i < todos.length; i++) {
         if (todos[i] !== tanque && colide(r, retanguloDoTanque(todos[i]))) {
             return false;
@@ -159,17 +247,18 @@ function posicaoLivre(tanque, x, y) {
 // ==========================================
 //  Tiros
 // ==========================================
-function atirar(tanque, doJogador) {
+// "dono" é quem atirou: um jogador ou null (inimigo)
+function atirar(tanque, dono) {
     // O tiro sai da ponta do canhão
     const ponta = TAMANHO_TANQUE / 2 + 6;
-    const velocidadeTiro = doJogador ? 7 : 4;
+    const velocidadeTiro = dono !== null ? 7 : 4;
 
     tiros.push({
         x: tanque.x + Math.cos(tanque.angulo) * ponta,
         y: tanque.y + Math.sin(tanque.angulo) * ponta,
         vx: Math.cos(tanque.angulo) * velocidadeTiro,
         vy: Math.sin(tanque.angulo) * velocidadeTiro,
-        doJogador: doJogador
+        dono: dono
     });
 }
 
@@ -179,20 +268,26 @@ function criarExplosao(x, y, cor) {
 
 
 // ==========================================
-//  Atualizar o jogador
+//  Atualizar os jogadores
 // ==========================================
-function atualizarJogador() {
+function atualizarJogador(jogador) {
+    // Jogador sem vidas não se mexe mais
+    if (jogador.vidas <= 0) {
+        return;
+    }
+
+    const c = jogador.controle;
     let dx = 0;
     let dy = 0;
 
     // Só anda em uma direção por vez (como os jogos de tanque antigos)
-    if (teclas["ArrowUp"] || teclas["KeyW"]) {
+    if (apertou(c.cima)) {
         dy = -1;
-    } else if (teclas["ArrowDown"] || teclas["KeyS"]) {
+    } else if (apertou(c.baixo)) {
         dy = 1;
-    } else if (teclas["ArrowLeft"] || teclas["KeyA"]) {
+    } else if (apertou(c.esquerda)) {
         dx = -1;
-    } else if (teclas["ArrowRight"] || teclas["KeyD"]) {
+    } else if (apertou(c.direita)) {
         dx = 1;
     }
 
@@ -213,8 +308,8 @@ function atualizarJogador() {
     if (jogador.recargaTiro > 0) {
         jogador.recargaTiro--;
     }
-    if (teclas["Space"] && jogador.recargaTiro === 0) {
-        atirar(jogador, true);
+    if (apertou(c.tiro) && jogador.recargaTiro === 0) {
+        atirar(jogador, jogador);
         jogador.recargaTiro = 20;   // espera 20 quadros para o próximo tiro
     }
 
@@ -225,7 +320,7 @@ function atualizarJogador() {
 
 
 // ==========================================
-//  Inimigos
+//  Inimigos (só no modo 1 jogador)
 // ==========================================
 function criarInimigo() {
     // Escolhe um ponto de entrada aleatório
@@ -251,10 +346,11 @@ function criarInimigo() {
 // Na maioria das vezes ele vai na direção do jogador.
 function escolherDirecao(inimigo) {
     const direcoes = [0, Math.PI / 2, Math.PI, -Math.PI / 2]; // direita, baixo, esquerda, cima
+    const alvo = jogadores[0];
 
     if (Math.random() < 0.6) {
-        const distX = jogador.x - inimigo.x;
-        const distY = jogador.y - inimigo.y;
+        const distX = alvo.x - inimigo.x;
+        const distY = alvo.y - inimigo.y;
 
         if (Math.abs(distX) > Math.abs(distY)) {
             inimigo.angulo = distX > 0 ? 0 : Math.PI;
@@ -301,7 +397,7 @@ function atualizarInimigos() {
         // Atira de tempos em tempos
         inimigo.recargaTiro--;
         if (inimigo.recargaTiro <= 0) {
-            atirar(inimigo, false);
+            atirar(inimigo, null);
             inimigo.recargaTiro = Math.max(50, 130 - nivel * 10) + Math.floor(Math.random() * 60);
         }
     }
@@ -328,14 +424,14 @@ function atualizarTiros() {
 
         // Bateu na parede
         for (let p = 0; p < paredes.length; p++) {
-            if (colide(retTiro, paredes[p])) {
+            if (!remover && colide(retTiro, paredes[p])) {
                 remover = true;
                 criarExplosao(tiro.x, tiro.y, "#aaaaaa");
             }
         }
 
-        if (tiro.doJogador) {
-            // Tiro do jogador acertou um inimigo?
+        // Tiro de jogador acertou um inimigo? (modo 1)
+        if (tiro.dono !== null) {
             for (let j = inimigos.length - 1; j >= 0; j--) {
                 if (!remover && colide(retTiro, retanguloDoTanque(inimigos[j]))) {
                     criarExplosao(inimigos[j].x, inimigos[j].y, "#ff8800");
@@ -346,12 +442,17 @@ function atualizarTiros() {
                     atualizarPainel();
                 }
             }
-        } else {
-            // Tiro do inimigo acertou o jogador?
-            if (!remover && colide(retTiro, retanguloDoTanque(jogador))) {
+        }
+
+        // Tiro acertou algum jogador?
+        for (let j = 0; j < jogadores.length; j++) {
+            const jogador = jogadores[j];
+            // O tiro não acerta quem atirou
+            if (!remover && tiro.dono !== jogador && jogador.vidas > 0 &&
+                colide(retTiro, retanguloDoTanque(jogador))) {
                 remover = true;
                 if (jogador.invencivel === 0) {
-                    jogadorAtingido();
+                    jogadorAtingido(jogador);
                 }
             }
         }
@@ -362,13 +463,13 @@ function atualizarTiros() {
     }
 }
 
-function jogadorAtingido() {
+function jogadorAtingido(jogador) {
     criarExplosao(jogador.x, jogador.y, "#ff3333");
-    vidas--;
+    jogador.vidas--;
     atualizarPainel();
 
-    if (vidas <= 0) {
-        fimDeJogo();
+    if (jogador.vidas <= 0) {
+        fimDeJogo(jogador);
     } else {
         jogador.invencivel = 120;   // 2 segundos piscando
     }
@@ -430,10 +531,26 @@ function desenhar() {
         ctx.strokeRect(p.x, p.y, p.w, p.h);
     }
 
-    // Jogador (pisca quando está invencível)
-    const piscando = jogador.invencivel > 0 && Math.floor(jogador.invencivel / 6) % 2 === 0;
-    if (!piscando && estado !== "fim") {
-        desenharTanque(jogador, "#6b8e23", "#2f3f12");
+    // No menu só desenha o mapa
+    if (estado === "menu") {
+        return;
+    }
+
+    // Jogadores (piscam quando estão invencíveis)
+    for (let i = 0; i < jogadores.length; i++) {
+        const j = jogadores[i];
+        const piscando = j.invencivel > 0 && Math.floor(j.invencivel / 6) % 2 === 0;
+        if (!piscando && j.vidas > 0) {
+            desenharTanque(j, j.corCorpo, j.corEsteira);
+
+            // No X1 escreve P1 / P2 em cima do tanque
+            if (modo === 2) {
+                ctx.fillStyle = "white";
+                ctx.font = "bold 14px Arial";
+                ctx.textAlign = "center";
+                ctx.fillText(j.nome, j.x, j.y - 24);
+            }
+        }
     }
 
     // Inimigos
@@ -445,7 +562,13 @@ function desenhar() {
     for (let i = 0; i < tiros.length; i++) {
         ctx.beginPath();
         ctx.arc(tiros[i].x, tiros[i].y, 4, 0, Math.PI * 2);
-        ctx.fillStyle = tiros[i].doJogador ? "#ffff66" : "#ff6666";
+        if (tiros[i].dono === null) {
+            ctx.fillStyle = "#ff6666";       // tiro de inimigo
+        } else if (tiros[i].dono.nome === "P2") {
+            ctx.fillStyle = "#66ccff";       // tiro do P2
+        } else {
+            ctx.fillStyle = "#ffff66";       // tiro do P1 / solo
+        }
         ctx.fill();
     }
 
@@ -471,23 +594,56 @@ function desenhar() {
 }
 
 function atualizarPainel() {
-    document.getElementById("pontos").textContent = pontos;
-    document.getElementById("vidas").textContent = vidas;
-    document.getElementById("nivel").textContent = nivel;
+    const painel = document.getElementById("painel");
+
+    if (modo === 1) {
+        painel.innerHTML =
+            "Pontos: <b>" + pontos + "</b> &nbsp;&nbsp; " +
+            "Vidas: <b>" + jogadores[0].vidas + "</b> &nbsp;&nbsp; " +
+            "Nível: <b>" + nivel + "</b>";
+    } else {
+        painel.innerHTML =
+            "<span class='verde'>P1</span> Vidas: <b>" + jogadores[0].vidas + "</b>" +
+            " &nbsp;&nbsp; X &nbsp;&nbsp; " +
+            "<span class='azul'>P2</span> Vidas: <b>" + jogadores[1].vidas + "</b>";
+    }
 }
 
 
 // ==========================================
-//  Fim de jogo e ranking (conversa com o Flask)
+//  Fim de jogo
 // ==========================================
-function fimDeJogo() {
+function fimDeJogo(perdedor) {
     estado = "fim";
-    document.getElementById("pontosFinal").textContent = pontos;
-    document.getElementById("fimDeJogo").classList.remove("escondido");
-    document.getElementById("botaoSalvar").disabled = false;
-    document.getElementById("nome").focus();
-    carregarRanking();
+
+    if (modo === 1) {
+        document.getElementById("pontosFinal").textContent = pontos;
+        document.getElementById("fimDeJogo").classList.remove("escondido");
+        document.getElementById("botaoSalvar").disabled = false;
+        document.getElementById("nome").focus();
+        carregarRanking();
+    } else {
+        // Quem venceu é o outro jogador
+        let vencedor = jogadores[0];
+        if (perdedor === jogadores[0]) {
+            vencedor = jogadores[1];
+        }
+        const texto = document.getElementById("textoVencedor");
+        if (vencedor.nome === "P1") {
+            texto.textContent = "JOGADOR 1 VENCEU!";
+            texto.className = "verde";
+        } else {
+            texto.textContent = "JOGADOR 2 VENCEU!";
+            texto.className = "azul";
+        }
+        document.getElementById("fimX1").classList.remove("escondido");
+    }
 }
+
+
+// ==========================================
+//  Ranking (conversa com o Flask) - só no modo 1
+// ==========================================
 
 // Pede o ranking para o servidor (rota /ranking do app.py)
 function carregarRanking() {
@@ -518,10 +674,38 @@ document.getElementById("botaoSalvar").addEventListener("click", function () {
     });
 });
 
-document.getElementById("botaoJogar").addEventListener("click", function () {
-    document.getElementById("nome").blur();
-    iniciarJogo();
+
+// ==========================================
+//  Botões
+// ==========================================
+document.getElementById("botao1Jogador").addEventListener("click", function () {
+    this.blur();
+    iniciarJogo(1);
 });
+
+document.getElementById("botao2Jogadores").addEventListener("click", function () {
+    this.blur();
+    iniciarJogo(2);
+});
+
+document.getElementById("botaoJogar").addEventListener("click", function () {
+    this.blur();
+    iniciarJogo(1);
+});
+
+document.getElementById("botaoRevanche").addEventListener("click", function () {
+    this.blur();
+    iniciarJogo(2);
+});
+
+// Os dois botões "Menu" (fim do modo 1 e fim do X1)
+const botoesMenu = document.getElementsByClassName("botaoMenu");
+for (let i = 0; i < botoesMenu.length; i++) {
+    botoesMenu[i].addEventListener("click", function () {
+        this.blur();
+        voltarAoMenu();
+    });
+}
 
 
 // ==========================================
@@ -529,8 +713,12 @@ document.getElementById("botaoJogar").addEventListener("click", function () {
 // ==========================================
 function loop() {
     if (estado === "jogando") {
-        atualizarJogador();
-        atualizarInimigos();
+        for (let i = 0; i < jogadores.length; i++) {
+            atualizarJogador(jogadores[i]);
+        }
+        if (modo === 1) {
+            atualizarInimigos();
+        }
         atualizarTiros();
     }
     atualizarExplosoes();
@@ -539,5 +727,4 @@ function loop() {
     requestAnimationFrame(loop);
 }
 
-iniciarJogo();
 loop();

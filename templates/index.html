@@ -8,26 +8,43 @@
 <body>
     <h1>BATALHA DE TANQUES</h1>
 
-    <div id="painel">
-        <span>Pontos: <b id="pontos">0</b></span>
-        <span>Vidas: <b id="vidas">3</b></span>
-        <span>Nível: <b id="nivel">1</b></span>
-    </div>
+    <!-- O texto do painel é preenchido pelo jogo.js -->
+    <div id="painel"></div>
 
     <canvas id="tela" width="800" height="560"></canvas>
 
-    <!-- Tela que aparece quando o jogador perde -->
-    <div id="fimDeJogo" class="escondido">
-        <h2>FIM DE JOGO</h2>
+    <!-- Menu inicial: escolher 1 ou 2 jogadores -->
+    <div id="menu" class="caixa">
+        <h2>ESCOLHA O MODO</h2>
+        <button id="botao1Jogador">1 JOGADOR</button>
+        <p>Você contra os tanques inimigos.<br>Mover: WASD ou setas | Atirar: ESPAÇO</p>
+        <button id="botao2Jogadores">2 JOGADORES (X1)</button>
+        <p>
+            <span class="verde">P1:</span> WASD + ESPAÇO<br>
+            <span class="azul">P2:</span> setas + ENTER
+        </p>
+    </div>
+
+    <!-- Fim de jogo no modo 1 jogador -->
+    <div id="fimDeJogo" class="caixa escondido">
+        <h2 class="vermelho">FIM DE JOGO</h2>
         <p>Você fez <b id="pontosFinal">0</b> pontos</p>
         <input id="nome" type="text" maxlength="15" placeholder="Digite seu nome">
         <button id="botaoSalvar">Salvar no ranking</button>
         <h3>Ranking</h3>
         <ol id="listaRanking"></ol>
         <button id="botaoJogar">Jogar de novo</button>
+        <button class="botaoMenu">Menu</button>
     </div>
 
-    <p class="ajuda">Mover: setas ou W A S D &nbsp;|&nbsp; Atirar: ESPAÇO &nbsp;|&nbsp; Pausar: P</p>
+    <!-- Fim de jogo no modo 2 jogadores -->
+    <div id="fimX1" class="caixa escondido">
+        <h2 id="textoVencedor">JOGADOR 1 VENCEU!</h2>
+        <button id="botaoRevanche">Revanche</button>
+        <button class="botaoMenu">Menu</button>
+    </div>
+
+    <p class="ajuda">Pausar: P</p>
 
     <script src="/static/jogo.js"></script>
 </body>
