@@ -37,6 +37,40 @@ jogo-tanque/
 
 ---
 
+## Passo a passo para rodar na VM (Windows)
+
+### 1. Instalar o Python e o Git
+- Python: https://www.python.org/downloads/
+  **IMPORTANTE:** na primeira tela do instalador marque **"Add python.exe to PATH"**.
+- Git: https://git-scm.com/download/win (só ir clicando em Next)
+
+Depois de instalar, feche e abra o terminal de novo.
+
+### 2. Baixar o projeto e instalar o Flask (no PowerShell ou Prompt de Comando)
+```
+git clone https://github.com/marcio1878/jogo-tanque.git
+cd jogo-tanque
+pip install -r requirements.txt
+```
+
+### 3. Ligar o servidor
+```
+python app.py
+```
+Se o Windows mostrar um aviso do **Firewall**, clique em **Permitir acesso**.
+Teste no navegador da VM: `http://localhost:5000`
+
+### 4. ngrok no Windows
+- Baixe em https://ngrok.com/download (versão Windows), extraia o `ngrok.exe`
+  e coloque dentro da pasta `jogo-tanque`.
+- Em **outro** terminal, dentro da pasta `jogo-tanque`:
+```
+.\ngrok config add-authtoken COLE_SEU_TOKEN_AQUI
+.\ngrok http 5000
+```
+
+---
+
 ## Passo a passo para rodar na VM (Ubuntu)
 
 ### 1. Instalar o que precisa
